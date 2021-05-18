@@ -1,0 +1,2 @@
+1|2|Artur|Nowak|333 222 111|artur@nowak.pl|ul. Wesoła 3a; 33-300 Krakow|
+2|1|Bartek|Głowacki|333 222 111|bartek@glowacki.pl|ul. Słoneczna 61; 33-330 Kraków|
