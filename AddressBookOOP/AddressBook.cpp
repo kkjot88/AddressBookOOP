@@ -5,6 +5,8 @@
 #include <fstream>
 #include <stdio.h>
 
+#include "LoginScreen.h"
+
 using namespace std;
 
 #undef max
@@ -22,28 +24,16 @@ struct ContactListEntry {
     string phone;
 };
 
-struct User {
-    int id;
-    string name;
-    string password;
-};
-
 int chooseOption(int numberOfOptions);
 bool checkInputForMenus(string chosenOption, int numberOfOptions);
-vector<User> loadUsersListFromFile();
-User splitFileLineToUserVector(string fileLine);
-void loginScreenMenu();
-int loginScreen(vector<User>& usersList);
-int checkUsersNameAndPassword(vector<User>& usersList);
-void signUp(vector<User>& usersList);
-int getNewUserId();
-void saveUserToFile(User newUser);
-string mergeUserToFileLine(User newUser);
+
+int logIn(LoginScreen loginScreen);
+
 vector<ContactListEntry> loadContactListFromFile(int loggedUserId);
 bool checkFileLineForLoggedUserId(string fileLine, int loggedUserId);
 ContactListEntry splitFileLineToEntryVector(string fileLine);
 void mainMenu();
-void AddressBook(int loggedUserId, vector<User>& usersList);
+void AddressBook(int loggedUserId, LoginScreen& loginScreen);
 int getNewEntryId();
 ContactListEntry addEntry(int newId, int loggedUserId);
 void saveEntryToFile(ContactListEntry newContactListEntry);
@@ -56,9 +46,9 @@ void deleteFromFile(int entryId);
 void showContactToEditOrDelete(ContactListEntry entryToShow);
 void editEntry(vector<ContactListEntry>& contactList);
 ContactListEntry editGivenContact(ContactListEntry contactToEdit);
-void editEntryInFile(ContactListEntry contactToEdit);
+void editEntryInFile(ContactListEntry contactToEdit);/*
 void changeUserPassword(int loggedUserId,vector<User>& usersList);
-void editUserInFile(User userToEdit);
+void editUserInFile(User userToEdit);*/
 
 int chooseOption(int numberOfOptions)
 {
@@ -89,81 +79,31 @@ bool checkInputForMenus(string chosenOption, int numberOfOptions)
     else return 0;
 }
 
-vector<User> loadUsersListFromFile()
-{
-    vector<User> usersList;
-    fstream file;
-    string fileLine;
-
-    file.open("usersList.txt", ios::in);
-    if (file.good() == 0) return usersList;
-
-    while (getline(file, fileLine)) {
-        usersList.push_back(splitFileLineToUserVector(fileLine));
-    }
-
-    file.close();
-    return usersList;
-}
-
-User splitFileLineToUserVector(string fileLine) {
-    int lineLength = fileLine.length();
-    string tempInfoArray[3];
-    int tempArrayIndex = 0;
-    User newUser;
-
-    for (int i = 0; i < lineLength; i++) {
-        if (fileLine[i] == 124) {
-            tempInfoArray[tempArrayIndex] = fileLine.substr(0, i);
-            fileLine = fileLine.substr(i + 1, fileLine.length());
-            tempArrayIndex++;
-            lineLength = fileLine.length();
-            i = 0;
-        }
-    }
-
-    newUser.id = stoi(tempInfoArray[0]);
-    newUser.name = tempInfoArray[1];
-    newUser.password = tempInfoArray[2];    
-
-    return newUser;
-}
-
-void loginScreenMenu() {
-    system("cls");
-    cout << "login Screen: \n";
-    cout << "1. Sign in\n";
-    cout << "2. Sign up\n";    
-    cout << "3. Exit\n";
-}
-
-int loginScreen(vector<User>& usersList) {
+int logIn(LoginScreen loginScreen) {
     
     int chosenOption;
     int loggedUserId = 0;
-
-    while (1) {
-        loginScreenMenu();        
-        chosenOption = chooseOption(3);
-        cout << endl;
-        switch (chosenOption) {
-        case 1:
-        {
-            loggedUserId = checkUsersNameAndPassword(usersList);
-            if (loggedUserId > 0) {
-                return loggedUserId;
-            }
-        } break;
-        case 2:
-        {
-            signUp(usersList);
-        } break;
-        case 3:
-        {
-            return 0;
+            
+    chosenOption = chooseOption(3);
+    cout << endl;
+    switch (chosenOption) {
+    case 1:
+    {
+        loggedUserId = loginScreen.signIn(loginScreen.getUsersList());
+        if (loggedUserId > 0) {
+            return loggedUserId;
         }
-        }
+    } break;
+    case 2:
+    {
+        loginScreen.signUp(loginScreen.getUsersList());
+        return -1;
+    } break;
+    case 3:
+    {
+        return 0;
     }
+    }    
 }
 
 int checkUsersNameAndPassword(vector<User>& usersList) {
@@ -221,70 +161,6 @@ int checkUsersNameAndPassword(vector<User>& usersList) {
     }        
     
     return loggedUserId;
-}
-
-void signUp(vector<User>& usersList) {
-
-    User newUser;
-
-    cout << "New users name: ";
-    getline(cin, newUser.name);
-    cout << "New users password: ";
-    getline(cin, newUser.password);
-
-    cout << endl << "New user '" << newUser.name << "' added succsefully. Press enter to return to login screen . . .";
-    cin.get();
-
-    newUser.id = getNewUserId();
-    saveUserToFile(newUser);
-    usersList.push_back(newUser);
-}
-
-int getNewUserId()
-{
-    vector<User> usersList;
-    fstream file;
-    file.open("usersList.txt", ios::in);
-    if (file.good() == 0) return 1;
-
-    vector<int> listOfIds;
-    string fileLine;
-
-    while (getline(file, fileLine))
-    {
-        User tempEntry = splitFileLineToUserVector(fileLine);
-        listOfIds.push_back(tempEntry.id);
-    }
-    if (listOfIds.size() == 0) {
-        return 1;
-    }
-    int newId = listOfIds[listOfIds.size() - 1] + 1;
-
-    return newId;
-}
-
-void saveUserToFile(User newUser) {
-    fstream file;
-    file.open("usersList.txt", ios::out | ios::app);
-
-    file << mergeUserToFileLine(newUser) << endl;
-
-    file.close();
-}
-
-string mergeUserToFileLine(User newUser) {
-    string tempInfoArray[3];
-    string newFileLine;
-
-    tempInfoArray[0] = to_string(newUser.id);
-    tempInfoArray[1] = newUser.name;
-    tempInfoArray[2] = newUser.password;
-
-    for (int i = 0; i < 3; i++) {
-        newFileLine = newFileLine + tempInfoArray[i] + "|";
-    }
-
-    return newFileLine;
 }
 
 vector<ContactListEntry> loadContactListFromFile(int loggedUserId)
@@ -360,7 +236,7 @@ void mainMenu() {
     cout << "9. Exit\n";
 }
 
-void AddressBook(int loggedUserId, vector<User>& usersList) {
+void AddressBook(int loggedUserId, LoginScreen& loginScreen) {
     vector<ContactListEntry> contactList;
     contactList = loadContactListFromFile(loggedUserId);
     int chosenOption;
@@ -401,7 +277,7 @@ void AddressBook(int loggedUserId, vector<User>& usersList) {
         } break;
         case 7:
         {
-            changeUserPassword(loggedUserId, usersList);
+            loginScreen.changeUserPassword(loggedUserId, loginScreen.getUsersList());
         } break;
         case 8:
         {
@@ -668,7 +544,7 @@ void editEntry(vector<ContactListEntry>& contactList) {
     cin >> entryId;
 
     vector<int> listOfIds;
-    int listIndexToEdit = 0;
+    int listIndexToEdit = -1;
     for (int i = 0; i < listSize; i++) {
         if (entryId == contactList[i].id) {
             listOfIds.push_back(contactList[i].id);
@@ -679,7 +555,7 @@ void editEntry(vector<ContactListEntry>& contactList) {
         }
     }
 
-    if (listIndexToEdit == 0) {
+    if (listIndexToEdit == -1) {
         cout << endl;
         cout << "Contact with this Id does not exist. Press enter to return to main menu . . .\n";
         cin.get(); cin.get();
@@ -767,80 +643,16 @@ void editEntryInFile(ContactListEntry contactToEdit) {
     bool renaming = rename("temp.txt", "contactlist.txt");
 }
 
-void changeUserPassword(int loggedUserId, vector<User>& usersList) {
-    int usersListSize = usersList.size();
-    int currentUserNumberInList = -1;
-    for (int i = 0; i < usersListSize; i++) {
-        if (usersList[i].id == loggedUserId) {
-            currentUserNumberInList = i;
-            break;
-        }
-    }
-
-    string newPassword;
-    cout << endl << "New password: ";
-    getline(cin, newPassword);
-    if (currentUserNumberInList >= 0 && currentUserNumberInList < usersListSize) {
-        if (usersList[currentUserNumberInList].password == newPassword) {
-            cout << endl << "Same password as current, no changes made. Press enter to return to main menu . . .\n";
-            cin.get();
-        }
-        else {
-            usersList[currentUserNumberInList].password = newPassword;
-            editUserInFile(usersList[currentUserNumberInList]);
-            cout << endl << "Password changed successfully. Press enter to return to main menu . . .\n";
-            cin.get();
-        }        
-    }
-    else if (currentUserNumberInList == -1) {
-        cout << endl << "Something went wrong. Press enter to return to main menu . . .\n";
-        cin.get();
-    }    
-}
-
-void editUserInFile(User userToEdit) {
-    fstream oldFile;
-    fstream newFile;
-
-    oldFile.open("usersList.txt", ios::in);
-    if (oldFile.good() == 0) {
-        cout << "error message" << endl;
-        return;
-    }
-    newFile.open("temp.txt", ios::out);
-
-    string currentOldFileLine;
-    User tempUser;
-
-    while (getline(oldFile, currentOldFileLine))
-    {
-        tempUser = splitFileLineToUserVector(currentOldFileLine);
-        if (tempUser.id == userToEdit.id) {
-            newFile << mergeUserToFileLine(userToEdit) << endl;
-        }
-        else {
-            newFile << currentOldFileLine << endl;
-        }
-    }
-
-    oldFile.close();
-    remove("userslist.txt");
-
-    newFile.close();
-    bool renaming = rename("temp.txt", "usersList.txt");
-}
-
 int main() {
-    int loggedUserId = -1;
-    vector<User> usersList;
-    usersList = loadUsersListFromFile();
+    int loggedUserId = -1;    
 
-    while (loggedUserId != 0) {    
+    while (loggedUserId != 0) {   
+        LoginScreen loginScreen;
         loggedUserId = -1;
-        loggedUserId = loginScreen(usersList);
+        loggedUserId = logIn(loginScreen);
 
         if (loggedUserId > 0) {
-            AddressBook(loggedUserId, usersList);
+            AddressBook(loggedUserId, loginScreen);
         }        
     }   
 

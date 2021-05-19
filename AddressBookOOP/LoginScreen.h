@@ -18,10 +18,14 @@ public:
 	bool checkUsername(string username, vector<User>& usersList);
 	bool checkPassword(string username, string password,int& loggedUserId, vector<User>& usersList);
 	void signUp(vector<User>& usersList);
+	bool checkIfUsernameExists(string newUsername, vector<User>& usersList);
 	int getNewUserId();
 	User splitFileLineToUserVector(string fileLine);
 	void saveUserToFile(User newUser);	
 	string mergeUserToFileLine(User newUser);
+	vector<User>& getUsersList();
+	void changeUserPassword(int loggedUserId, vector<User>& usersList);
+	void editUserInFile(User userToEdit);
 	int exit();
 };
 

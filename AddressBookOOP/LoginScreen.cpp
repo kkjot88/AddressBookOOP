@@ -34,19 +34,19 @@ int LoginScreen::signIn(vector<User>& usersList) {
     bool isPasswordCorrect = false;
     int loggedUserId = 0;
 
-    while (doesUserExists == false || username != "0") {
+    while (doesUserExists == false) {
         cout << "Username: ";
         getline(cin, username);
         doesUserExists = checkUsername(username,usersList);
-    }
-    if (username == "0") return -1;
+        if (username == "0") return -1;
+    }    
 
-    while (isPasswordCorrect == false || password != "0") {
+    while (isPasswordCorrect == false) {
         cout << "Password: ";
         getline(cin, password);
-        doesUserExists = checkPassword(username, password, loggedUserId, usersList);
-    }
-    if (password == "0") return -1;
+        isPasswordCorrect = checkPassword(username, password, loggedUserId, usersList);
+        if (password == "0") return -1;
+    }    
     
     return loggedUserId;
 }
@@ -74,6 +74,7 @@ bool LoginScreen::checkPassword(string username,string password,int& loggedUserI
             cout << "Press enter to continue . . .";
             loggedUserId = usersList[i].id;
             cin.get();            
+
             return true;
         }
         else if (i == listSize - 1) {
@@ -85,9 +86,15 @@ bool LoginScreen::checkPassword(string username,string password,int& loggedUserI
 
 void LoginScreen::signUp(vector<User>& usersList) {
     User newUser;
+    bool doesUserExist = false;
+    
+    do {
+        cout << "New users name: ";
+        getline(cin, newUser.name);
+        doesUserExist = checkIfUsernameExists(newUser.name, usersList);
+    } while (doesUserExist == true);
 
-    cout << "New users name: ";
-    getline(cin, newUser.name);
+    
     cout << "New users password: ";
     getline(cin, newUser.password);
 
@@ -97,6 +104,18 @@ void LoginScreen::signUp(vector<User>& usersList) {
     newUser.id = getNewUserId();
     saveUserToFile(newUser);
     usersList.push_back(newUser);
+}
+
+bool LoginScreen::checkIfUsernameExists(string newUsername, vector<User>& usersList) {
+    int listSize = usersList.size();
+
+    for (int i = 0; i < listSize; i++) {
+        if (newUsername == usersList[i].name) {
+            cout << "User with that name already exists, try again. Enter username: 0 to abort.\n";
+            return true;
+        }        
+    }
+    return false;
 }
 
 int LoginScreen::getNewUserId()
@@ -167,6 +186,74 @@ string LoginScreen::mergeUserToFileLine(User newUser) {
     }
 
     return newFileLine;
+}
+
+vector<User>& LoginScreen::getUsersList()
+{
+    return usersList;
+}
+
+void LoginScreen::changeUserPassword(int loggedUserId, vector<User>& usersList) {
+    int usersListSize = usersList.size();
+    int currentUserNumberInList = -1;
+    for (int i = 0; i < usersListSize; i++) {
+        if (usersList[i].id == loggedUserId) {
+            currentUserNumberInList = i;
+            break;
+        }
+    }
+
+    string newPassword;
+    cout << endl << "New password: ";
+    getline(cin, newPassword);
+    if (currentUserNumberInList >= 0 && currentUserNumberInList < usersListSize) {
+        if (usersList[currentUserNumberInList].password == newPassword) {
+            cout << endl << "Same password as current, no changes made. Press enter to return to main menu . . .\n";
+            cin.get();
+        }
+        else {
+            usersList[currentUserNumberInList].password = newPassword;
+            editUserInFile(usersList[currentUserNumberInList]);
+            cout << endl << "Password changed successfully. Press enter to return to main menu . . .\n";
+            cin.get();
+        }
+    }
+    else if (currentUserNumberInList == -1) {
+        cout << endl << "Something went wrong. Press enter to return to main menu . . .\n";
+        cin.get();
+    }
+}
+
+void LoginScreen::editUserInFile(User userToEdit) {
+    fstream oldFile;
+    fstream newFile;
+
+    oldFile.open("usersList.txt", ios::in);
+    if (oldFile.good() == 0) {
+        cout << "error message" << endl;
+        return;
+    }
+    newFile.open("temp.txt", ios::out);
+
+    string currentOldFileLine;
+    User tempUser;
+
+    while (getline(oldFile, currentOldFileLine))
+    {
+        tempUser = splitFileLineToUserVector(currentOldFileLine);
+        if (tempUser.id == userToEdit.id) {
+            newFile << mergeUserToFileLine(userToEdit) << endl;
+        }
+        else {
+            newFile << currentOldFileLine << endl;
+        }
+    }
+
+    oldFile.close();
+    remove("userslist.txt");
+
+    newFile.close();
+    bool renaming = rename("temp.txt", "usersList.txt");
 }
 
 int LoginScreen::exit() {

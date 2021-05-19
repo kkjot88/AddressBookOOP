@@ -1,1 +1,7 @@
-﻿  AddressBook.vcxproj -> C:\Users\karol\Desktop\ABprojOOP\AddressBookOOP\Debug\AddressBook.exe
+﻿  AddressBook.cpp
+C:\Users\kjanoszek\Desktop\ABprojOOP\AddressBookOOP\AddressBook.cpp(376,23): warning C4018: '<': signed/unsigned mismatch
+C:\Users\kjanoszek\Desktop\ABprojOOP\AddressBookOOP\AddressBook.cpp(404,23): warning C4018: '<': signed/unsigned mismatch
+C:\Users\kjanoszek\Desktop\ABprojOOP\AddressBookOOP\AddressBook.cpp(425,23): warning C4018: '<': signed/unsigned mismatch
+C:\Users\kjanoszek\Desktop\ABprojOOP\AddressBookOOP\AddressBook.cpp(450,23): warning C4018: '<': signed/unsigned mismatch
+C:\Users\kjanoszek\Desktop\ABprojOOP\AddressBookOOP\AddressBook.cpp(107): warning C4715: 'logIn': not all control paths return a value
+  AddressBook.vcxproj -> C:\Users\kjanoszek\Desktop\ABprojOOP\AddressBookOOP\Debug\AddressBook.exe
